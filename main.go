@@ -7,7 +7,6 @@ import (
     "time"
 )
 
-var sites = make(map[string]*SiteStatus)
 var websiteTemplate = `
 <!doctype html>
 <html lang="en">
@@ -48,6 +47,8 @@ var websiteTemplate = `
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.js"></script>
 </html>`
+
+var sites = make(map[string]*SiteStatus)
 
 func buildSiteStatusTable() string {
     const rowTemplate string = "<tr> <td>%v</td> <td>%v</td> <td>%v</td> </tr>"
@@ -110,6 +111,7 @@ func updateHeartbeat(w http.ResponseWriter, r *http.Request) {
     } else {
         sites[siteName] = &SiteStatus{time.Now(), false}
     }
+
     http.Redirect(w, r, "/", http.StatusMovedPermanently)
     // w.WriteHeader(200)
 }
