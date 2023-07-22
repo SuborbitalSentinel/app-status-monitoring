@@ -2,18 +2,23 @@ package home
 
 import (
 	"html/template"
-	"monitor/service"
 	"net/http"
 )
 
-type Handler struct {
-	Template *template.Template
-	Status   func() []service.Data
+type Data struct {
+	ServiceName   string
+	MissedCheckIn bool
+	LastHeartbeat string
 }
 
-func (self *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	Template *template.Template
+	Status   func() []Data
+}
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"Services": self.Status(),
+		"Services": h.Status(),
 	}
-	self.Template.Execute(w, data)
+	h.Template.Execute(w, data)
 }

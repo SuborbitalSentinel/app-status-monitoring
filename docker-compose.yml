@@ -1,0 +1,23 @@
+services:
+  # service-monitor:
+  #   image: service-monitor:latest
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+
+  worker-service:
+    image: byrnedo/alpine-curl:latest
+    healthcheck:
+      test: ["CMD", "./healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+    volumes:
+      - ./infrastructure/healthcheck.sh:/healthcheck.sh
+    deploy:
+      replicas: 5
+    environment:
+      SERVICE_MONITOR_URL: host.docker.internal:1911/alive
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: sleep infinity

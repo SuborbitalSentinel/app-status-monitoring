@@ -3,15 +3,26 @@ package service
 import "sync"
 
 type Registry struct {
-	services map[string]State
-	mutex    sync.Mutex
+	services         map[string]State
+	parentToChildren map[string][]string
+	mutex            sync.Mutex
 }
 
 func NewRegistry() Registry {
 	return Registry{
-		services: make(map[string]State),
-		mutex:    sync.Mutex{},
+		services:         make(map[string]State),
+		parentToChildren: make(map[string][]string),
+		mutex:            sync.Mutex{},
 	}
+}
+
+func contains(slice []string, element string) bool {
+	for _, a := range slice {
+		if a == element {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Registry) States() []State {
@@ -27,14 +38,19 @@ func (r *Registry) States() []State {
 func (r *Registry) Set(state State) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	r.services[state.Name] = state
+
+	r.services[state.Id] = state
+
+	if state.Relationship == Child && !contains(r.parentToChildren[state.ParentKey], state.Id) {
+		r.parentToChildren[state.ParentKey] = append(r.parentToChildren[state.ParentKey], state.Id)
+	}
 }
 
-func (r *Registry) TryGet(name string) (State, bool) {
+func (r *Registry) TryGet(id string) (State, bool) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	if _, ok := r.services[name]; ok {
-		return r.services[name], ok
+	if s, ok := r.services[id]; ok {
+		return s, ok
 	}
 	return State{}, false
 }

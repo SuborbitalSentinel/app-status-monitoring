@@ -15,12 +15,12 @@ func main() {
 
 	home := &home.Handler{
 		Template: template.Must(template.ParseFiles("./templates/index.html")),
-		Status: func() []service.Data {
+		Status: func() []home.Data {
 			now := time.Now()
-			status := make([]service.Data, 0)
+			status := make([]home.Data, 0)
 
 			for _, state := range registry.States() {
-				status = append(status, service.Data{
+				status = append(status, home.Data{
 					ServiceName:   state.Name,
 					MissedCheckIn: state.WasCheckinMissed(&now),
 					LastHeartbeat: state.LastHeartbeat.Format(time.RFC3339),
@@ -34,22 +34,25 @@ func main() {
 
 	http.HandleFunc("/alive", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
-		serviceName := r.FormValue("site")
+		serviceId := r.FormValue("service")
+		relationship := r.FormValue("relationship")
+		parentKey := r.FormValue("parent-key")
 
-		if s, ok := registry.TryGet(serviceName); ok {
+		if s, ok := registry.TryGet(serviceId); ok {
 			s.LastHeartbeat = time.Now()
 			registry.Set(s)
 		} else {
 			registry.Set(service.State{
-				Name:          serviceName,
+				Id:            serviceId,
+				Name:          "",
 				LastHeartbeat: time.Now(),
 				HasAlerted:    false,
+				Relationship:  service.ToRelationship(relationship),
+				ParentKey:     parentKey,
 			})
 		}
 
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
-		// w.WriteHeader(200)
-
+		w.WriteHeader(200)
 	})
 
 	http.ListenAndServe(":1911", nil)
