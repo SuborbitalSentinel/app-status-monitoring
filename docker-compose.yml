@@ -1,10 +1,4 @@
 services:
-  # service-monitor:
-  #   image: service-monitor:latest
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-
   worker-service:
     image: byrnedo/alpine-curl:latest
     healthcheck:
@@ -18,6 +12,8 @@ services:
       replicas: 5
     environment:
       SERVICE_MONITOR_URL: host.docker.internal:1911/alive
+      RELATIONSHIP: ""
+      PARENT_KEY: ""
     extra_hosts:
       - "host.docker.internal:host-gateway"
     entrypoint: sleep infinity

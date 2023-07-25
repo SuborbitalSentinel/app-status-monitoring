@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"log"
 	"monitor/home"
 	"monitor/service"
 	"net/http"
@@ -33,18 +34,23 @@ func main() {
 	http.HandleFunc("/", home.ServeHTTP)
 
 	http.HandleFunc("/alive", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Printf("Error parsing form: %v", err)
+		}
 		serviceId := r.FormValue("service")
 		relationship := r.FormValue("relationship")
 		parentKey := r.FormValue("parent-key")
+		log.Printf("Received /alive request: %s, %s, %s", serviceId, relationship, parentKey)
 
 		if s, ok := registry.TryGet(serviceId); ok {
+			s.Name = registry.GetServiceName(serviceId)
 			s.LastHeartbeat = time.Now()
 			registry.Set(s)
 		} else {
 			registry.Set(service.State{
 				Id:            serviceId,
-				Name:          "",
+				Name:          registry.GetServiceName(serviceId),
 				LastHeartbeat: time.Now(),
 				HasAlerted:    false,
 				Relationship:  service.ToRelationship(relationship),
