@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type Data struct {
+type ServiceData struct {
 	ServiceName   string
 	MissedCheckIn bool
 	LastHeartbeat string
@@ -13,12 +13,12 @@ type Data struct {
 
 type Handler struct {
 	Template *template.Template
-	Status   func() []Data
+	CreateServiceData   func() []ServiceData
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"Services": h.Status(),
+		"Services": h.CreateServiceData(),
 	}
 	h.Template.Execute(w, data)
 }

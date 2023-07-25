@@ -25,6 +25,14 @@ func NewRegistry() Registry {
 	}
 }
 
+func (r *Registry) Reset() {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	r.services = make(map[string]State)
+	r.idToName = make(map[string]string)
+	r.parentToChildren = make(map[string][]string)
+}
+
 func (r *Registry) GetServiceName(serviceId string) string {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -42,7 +50,6 @@ func (r *Registry) GetServiceName(serviceId string) string {
 	}
 
 	for _, host := range hosts {
-		log.Printf("Sending request to: %s\n", host)
 		res, err := http.Get(host)
 		if err != nil {
 			log.Println(err)
@@ -63,11 +70,11 @@ func (r *Registry) GetServiceName(serviceId string) string {
 				serviceId := strings.TrimSpace(parts[0])
 				serviceName := strings.TrimSpace(parts[1])
 
-				log.Printf("serviceId: %s; serviceName: %s\n", serviceId, serviceName)
 				r.idToName[serviceId] = serviceName
 			}
 		}
 	}
+	log.Printf("Got service name for %s: %s\n", serviceId, r.idToName[serviceId])
 	return r.idToName[serviceId]
 }
 

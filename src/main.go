@@ -16,12 +16,12 @@ func main() {
 
 	home := &home.Handler{
 		Template: template.Must(template.ParseFiles("./templates/index.html")),
-		Status: func() []home.Data {
+		CreateServiceData: func() []home.ServiceData {
 			now := time.Now()
-			status := make([]home.Data, 0)
+			status := make([]home.ServiceData, 0)
 
 			for _, state := range registry.States() {
-				status = append(status, home.Data{
+				status = append(status, home.ServiceData{
 					ServiceName:   state.Name,
 					MissedCheckIn: state.WasCheckinMissed(&now),
 					LastHeartbeat: state.LastHeartbeat.Format(time.RFC3339),
@@ -33,6 +33,11 @@ func main() {
 	}
 	http.HandleFunc("/", home.ServeHTTP)
 
+	http.HandleFunc("/reset", func(w http.ResponseWriter, _ *http.Request) {
+		registry.Reset()
+		w.WriteHeader(http.StatusOK)
+	})
+
 	http.HandleFunc("/alive", func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
@@ -41,7 +46,7 @@ func main() {
 		serviceId := r.FormValue("service")
 		relationship := r.FormValue("relationship")
 		parentKey := r.FormValue("parent-key")
-		log.Printf("Received /alive request: %s, %s, %s", serviceId, relationship, parentKey)
+		log.Printf("Received /alive request: '%s', '%s', '%s'", serviceId, relationship, parentKey)
 
 		if s, ok := registry.TryGet(serviceId); ok {
 			s.Name = registry.GetServiceName(serviceId)
@@ -58,7 +63,7 @@ func main() {
 			})
 		}
 
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 	})
 
 	http.ListenAndServe(":1911", nil)
