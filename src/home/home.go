@@ -1,7 +1,7 @@
 package home
 
 import (
-	"html/template"
+	"monitor/util"
 	"net/http"
 )
 
@@ -12,8 +12,8 @@ type ServiceData struct {
 }
 
 type Handler struct {
-	Template *template.Template
-	CreateServiceData   func() []ServiceData
+	Template          util.TemplateExecutor
+	CreateServiceData func() []ServiceData
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

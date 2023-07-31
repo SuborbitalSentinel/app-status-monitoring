@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<style>
+			body { align-items: center;  display: flex; flex-flow: column nowrap; }
+			ul { padding: 0px; list-style: none; }
+			hr { width:95%; background-color: #000000; height: 1px; border: none; }
+			ul { width: 85%; }
+			ul>li {
+				min-height: 50px;
+				text-align: center;
+				padding: 0px 0px 20px 0px;
+			}
+			details {
+				margin-bottom: 20px;
+			}
+
+			.tab-container {
+				display: grid;
+				grid-template-columns: 5% 95%;
+				background-color:#DDDDDD;
+			}
+
+			.tab-indicator {
+				border-right: 1px solid;
+			}
+
+			.child-grid-container {
+				display: grid;
+				grid-gap: 10px;
+				grid-template-columns: auto auto auto auto;
+				background-color: #333333;
+				margin: 0% 3%;
+				padding: 10px;
+				border-radius: 5px;
+			}
+
+			.nested-tab-container {
+				display: grid;
+				grid-template-columns: 20% 80%;
+				background-color: #DDDDDD;
+				min-height: 50px;
+			}
+		</style>
+	</head>
+	<body style="background-color:#333333">
+		<ul>
+			{{range .Services}}
+			<li>
+				<div class="tab-container">
+						<div class="tab-indicator" {{if .MissedCheckIn}} style="background-color: #FF9999" {{else}} style="background-color: #99FF99" {{end}}></div>
+						<div>
+							<h3>{{.ServiceName}}</h3>
+							{{.LastHeartbeat}}
+							<hr>
+							<details>
+								<summary>Show Children</summary>
+								<div class="child-grid-container">
+										<div class="nested-tab-container">
+											<div class="tab-indicator" style="background-color: #99FF99;"></div>
+											<p>thing1</p>
+										</div>
+										<div class="nested-tab-container">
+											<div class="tab-indicator" style="background-color: #99FF99;"></div>
+											<p>thing2</p>
+										</div>
+										<div class="nested-tab-container">
+											<div class="tab-indicator" style="background-color: #99FF99;"></div>
+											<p>thing3</p>
+										</div>
+										<div class="nested-tab-container">
+											<div class="tab-indicator" style="background-color: #99FF99;"></div>
+											<p>thing4</p>
+										</div>
+								</div>
+							</details>
+					</div>
+				</div>
+			</li>
+			{{end}}
+		</ul>
+	</body>
+</html>

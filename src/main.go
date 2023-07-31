@@ -1,11 +1,12 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"monitor/home"
 	"monitor/service"
+	"monitor/util"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -15,12 +16,16 @@ func main() {
 	go registry.ConsoleMonitor()
 
 	home := &home.Handler{
-		Template: template.Must(template.ParseFiles("./templates/index.html")),
+		Template: util.DebugTemplateExecutor{Filepath: "./templates/index.gotmpl"},
 		CreateServiceData: func() []home.ServiceData {
 			now := time.Now()
 			status := make([]home.ServiceData, 0)
+			states := registry.States()
+			sort.Slice(states, func(lhs, rhs int) bool {
+				return states[lhs].Name < states[rhs].Name
+			})
 
-			for _, state := range registry.States() {
+			for _, state := range states {
 				status = append(status, home.ServiceData{
 					ServiceName:   state.Name,
 					MissedCheckIn: state.WasCheckinMissed(&now),
