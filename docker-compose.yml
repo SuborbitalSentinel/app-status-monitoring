@@ -1,5 +1,22 @@
 services:
-  worker-service:
+  parent-service1:
+    image: byrnedo/alpine-curl:latest
+    healthcheck:
+      test: ["CMD", "./healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+    volumes:
+      - ./infrastructure/healthcheck.sh:/healthcheck.sh
+    environment:
+      SERVICE_MONITOR_URL: host.docker.internal:1911/alive
+      RELATIONSHIP: "parent"
+      PARENT_KEY: "parent-service1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: sleep infinity
+
+  child-service1:
     image: byrnedo/alpine-curl:latest
     healthcheck:
       test: ["CMD", "./healthcheck.sh"]
@@ -10,6 +27,25 @@ services:
       - ./infrastructure/healthcheck.sh:/healthcheck.sh
     deploy:
       replicas: 5
+    environment:
+      SERVICE_MONITOR_URL: host.docker.internal:1911/alive
+      RELATIONSHIP: "child"
+      PARENT_KEY: "parent-service1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: sleep infinity
+
+  independant-service:
+    image: byrnedo/alpine-curl:latest
+    healthcheck:
+      test: ["CMD", "./healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+    volumes:
+      - ./infrastructure/healthcheck.sh:/healthcheck.sh
+    deploy:
+      replicas: 2
     environment:
       SERVICE_MONITOR_URL: host.docker.internal:1911/alive
       RELATIONSHIP: ""

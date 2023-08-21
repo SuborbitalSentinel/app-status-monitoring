@@ -6,9 +6,11 @@ import (
 )
 
 type ServiceData struct {
-	ServiceName   string
-	MissedCheckIn bool
-	LastHeartbeat string
+	ServiceName      string
+	MissedCheckIn    bool
+	LastHeartbeat    string
+	OnlineChildCount int
+	ChildServices    []ServiceData
 }
 
 type Handler struct {

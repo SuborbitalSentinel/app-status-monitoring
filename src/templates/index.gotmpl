@@ -1,10 +1,13 @@
 <!doctype html>
 <html lang="en">
 	<head>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Preahvihear&display=swap" rel="stylesheet">
 		<style>
 			body { align-items: center;  display: flex; flex-flow: column nowrap; }
 			ul { padding: 0px; list-style: none; }
-			hr { width:95%; background-color: #000000; height: 1px; border: none; }
+			hr { width:95%; background-color: #000000; height: 2px; border: none; }
 			details { margin-bottom: 10px; }
 			ul { width: 90%; }
 			ul>li {
@@ -37,58 +40,46 @@
 				grid-template-columns: 10% 90%;
 				background-color: #DDDDDD;
 			}
+			.parent-placard {
+				box-shadow: 1px 1px 5px #111111 inset;
+				background-color: #999999;
+				margin: 20px 20px 10px 20px;
+				padding: 8px 16px;
+				display: inline-block;
+				font-family: 'Preahvihear', sans-serif;
+				font-weight: bold;
+				font-size: 1.25rem;
+			}
 		</style>
 	</head>
 	<body style="background-color:#333333">
 		<ul>
-			{{range .Services}}
+			{{range $_, $parent := .Services}}
 			<li>
 				<div class="tab-container">
-						<div class="tab-indicator" {{if .MissedCheckIn}} style="background-color: #FF9999" {{else}} style="background-color: #99FF99" {{end}}></div>
-						<div>
-							<h3>{{.ServiceName}}</h3>
-							{{.LastHeartbeat}}
-							<hr>
+					<div class="tab-indicator" {{if $parent.MissedCheckIn}} style="background-color: #FF9999" {{else}} style="background-color: #99FF99" {{end}}></div>
+					<div>
+						<div style="align-items: center;  display: flex; flex-flow: column nowrap;">
+							<div class="parent-placard">{{$parent.ServiceName}}</div>
+							{{$parent.LastHeartbeat}}
+						</div>
+						<hr>
+						{{if ne 0 (len $parent.ChildServices)}}
 							<details>
-								<summary>Show Children</summary>
+							<summary>Show Children (Online: {{$parent.OnlineChildCount}}/{{(len $parent.ChildServices)}})</summary>
 								<div class="child-grid-container">
+									{{range $_, $child := $parent.ChildServices}}
 										<div class="nested-tab-container">
-											<div class="tab-indicator" style="background-color: #99FF99;"></div>
-											<div>
-												{{.ServiceName}}
-												{{.LastHeartbeat}}
+											<div class="tab-indicator" {{if $child.MissedCheckIn}} style="background-color: #FF9999" {{else}} style="background-color: #99FF99" {{end}}></div>
+											<div style="align-items: center;  display: flex; flex-flow: column nowrap;">
+												<p style="margin: 0px; font-size:0.75rem">{{$child.ServiceName}}</p>
+												<p style="font-size:0.75rem">{{$child.LastHeartbeat}}</p>
 											</div>
 										</div>
-										<div class="nested-tab-container">
-											<div class="tab-indicator" style="background-color: #99FF99;"></div>
-											<div>
-												{{.ServiceName}}
-												{{.LastHeartbeat}}
-											</div>
-										</div>
-										<div class="nested-tab-container">
-											<div class="tab-indicator" style="background-color: #99FF99;"></div>
-											<div>
-												{{.ServiceName}}
-												{{.LastHeartbeat}}
-											</div>
-										</div>
-										<div class="nested-tab-container">
-											<div class="tab-indicator" style="background-color: #99FF99;"></div>
-											<div>
-												{{.ServiceName}}
-												{{.LastHeartbeat}}
-											</div>
-										</div>
-										<div class="nested-tab-container">
-											<div class="tab-indicator" style="background-color: #99FF99;"></div>
-											<div>
-												{{.ServiceName}}
-												{{.LastHeartbeat}}
-											</div>
-										</div>
+									{{end}}
 								</div>
 							</details>
+						{{end}}
 					</div>
 				</div>
 			</li>
