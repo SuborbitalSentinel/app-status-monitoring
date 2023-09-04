@@ -17,6 +17,12 @@ type ReleaseTemplateExecutor struct {
 	Template *template.Template
 }
 
+func NewReleaseTemplateExecutor(filepath string) ReleaseTemplateExecutor {
+	return ReleaseTemplateExecutor{
+		Template: template.Must(template.ParseFiles(filepath)),
+	}
+}
+
 func (e DebugTemplateExecutor) Execute(w http.ResponseWriter, data interface{}) error {
 	t := template.Must(template.ParseFiles(e.Filepath))
 
@@ -26,4 +32,3 @@ func (e DebugTemplateExecutor) Execute(w http.ResponseWriter, data interface{}) 
 func (e ReleaseTemplateExecutor) Execute(w http.ResponseWriter, data interface{}) error {
 	return e.Template.Execute(w, data)
 }
-

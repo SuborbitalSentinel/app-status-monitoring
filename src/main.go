@@ -1,3 +1,23 @@
+/*
+Name: Service Monitor
+Description: A service monitor is used to monitor the health of various in-house services.
+	It's designed to be fairly flexable and unopinionated, except for dockerized services.
+	For dockerized services, it will attempt to asertain the friendly name by querying
+	host machines for their container id / friendly name pairs.
+
+	The host machines that will be queried are any environment variables beginning with: HOST_
+Endpoints:
+	/:
+		Returns a visualized dashboard of the services that are being monitored.
+	/reset:
+		Resets the service registry (good to call after redeploying services)
+	/alive form values:
+		1) service-id: [Required] [String] unique identifier. (recomend using some sort of UUID).
+		2) relationship: [Optional] ["Parent" | "Child" | ""] Defines whether the service is a parent, child, or standalone.
+		3) parent-key: [Optional] Child and Parent services should share the same parent-key. Ignored for standalone services.
+		4) service-name: [Optional] [String] human-readable name. If not provided, assumed that service is dockerized; container name resolved automagically
+*/
+
 package main
 
 import (
@@ -14,6 +34,9 @@ var registry = service.NewRegistry()
 
 func main() {
 	go registry.ConsoleMonitor()
+
+	// TODO: Replace DebugTemplateExecutor with a ReleaseTemplateExecutor
+	// releaseTemplates := util.NewReleaseTemplateExecutor("./templates/index.gotmpl")
 
 	home := &home.Handler{
 		Template: util.DebugTemplateExecutor{Filepath: "./templates/index.gotmpl"},
@@ -49,11 +72,11 @@ func main() {
 				}
 				if state.Relationship != service.Child {
 					serviceDto = append(serviceDto, home.ServiceData{
-						ServiceName:   state.Name,
-						MissedCheckIn: state.WasCheckinMissed(&now),
-						LastHeartbeat: state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
+						ServiceName:      state.Name,
+						MissedCheckIn:    state.WasCheckinMissed(&now),
+						LastHeartbeat:    state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
 						OnlineChildCount: len(childServices) - offlineChildCount,
-						ChildServices: childServices,
+						ChildServices:    childServices,
 					})
 
 				}
@@ -74,19 +97,29 @@ func main() {
 		if err != nil {
 			log.Printf("Error parsing form: %v", err)
 		}
-		serviceId := r.FormValue("service")
+		serviceId := r.FormValue("service-id")
+		serviceName := r.FormValue("service-name")
 		relationship := r.FormValue("relationship")
 		parentKey := r.FormValue("parent-key")
-		log.Printf("Received /alive request: '%s', '%s', '%s'", serviceId, relationship, parentKey)
+		log.Printf("Received /alive request: '%s', '%s', '%s', '%s'", serviceId, serviceName, relationship, parentKey)
 
 		if s, ok := registry.TryGet(serviceId); ok {
+			// TODO: Try to remove this line by fixing the dirty read issue.
 			s.Name = registry.GetServiceName(serviceId)
+
 			s.LastHeartbeat = time.Now()
 			registry.Set(s)
 		} else {
+			var name string
+			if serviceName != "" {
+				name = serviceName
+			} else {
+				name = registry.GetServiceName(serviceId)
+			}
+
 			registry.Set(service.State{
 				Id:            serviceId,
-				Name:          registry.GetServiceName(serviceId),
+				Name:          name,
 				LastHeartbeat: time.Now(),
 				HasAlerted:    false,
 				Relationship:  service.ToRelationship(relationship),
