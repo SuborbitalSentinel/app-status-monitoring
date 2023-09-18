@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+// This whole file exists to facilitate the use of a Release or Debug html template.
+// If the Debug template is used, changes can be made to the template without restarting the server.
+// If the Release template is used, changes to the template will not be reflected until the server is restarted.
+
 type TemplateExecutor interface {
 	Execute(w http.ResponseWriter, data interface{}) error
 }

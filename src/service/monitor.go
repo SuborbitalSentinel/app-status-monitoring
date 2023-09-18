@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+// If the current pattern is followed, only one Monitor can be used at any given time.
+// To fix this, we would need to move the state of if we have or haven't alerted to something else so the Monitors don't fight
+
 func (r *Registry) ConsoleMonitor() {
 	for {
 		now := time.Now()

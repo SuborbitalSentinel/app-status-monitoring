@@ -3,7 +3,8 @@ Name: Service Monitor
 Description: A service monitor is used to monitor the health of various in-house services.
 	It's designed to be fairly flexable and unopinionated, except for dockerized services.
 	For dockerized services, it will attempt to asertain the friendly name by querying
-	host machines for their container id / friendly name pairs.
+	host machines for their container id / friendly name pairs. It assumes that it's a dockerized service
+	if the service-name is missing from the /alive Post body.
 
 	The host machines that will be queried are any environment variables beginning with: HOST_
 Endpoints:

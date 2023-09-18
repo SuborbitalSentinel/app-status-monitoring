@@ -1,3 +1,4 @@
+# This file is just used for testing and as an example of what the real services should be doing
 services:
   parent-service1:
     image: byrnedo/alpine-curl:latest

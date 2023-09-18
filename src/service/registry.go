@@ -37,14 +37,12 @@ func (r *Registry) GetServiceName(serviceId string) string {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	if val, ok := r.idToName[serviceId]; ok {
-		log.Printf("Got service name for %s: %s\n", serviceId, val)
 		return val
 	}
 
 	var hosts []string
 	for _, v := range os.Environ() {
 		if strings.HasPrefix(v, "HOST_") {
-			log.Printf("Found HOST_ variable: %s\n", v)
 			hosts = append(hosts, strings.Split(v, "=")[1])
 		}
 	}
@@ -52,16 +50,12 @@ func (r *Registry) GetServiceName(serviceId string) string {
 	for _, host := range hosts {
 		res, err := http.Get(host)
 		if err != nil {
+			log.Printf("Failed to complete request for container names from Host: %s\n", host)
 			log.Println(err)
+			continue
 		}
-		body, err := io.ReadAll(res.Body)
-		res.Body.Close()
-		if res.StatusCode > 299 {
-			log.Printf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-		}
-		if err != nil {
-			log.Println(err)
-		}
+		defer res.Body.Close()
+		body, _ := io.ReadAll(res.Body)
 
 		lines := strings.Split(string(body), "\n")
 		for _, line := range lines {
@@ -74,7 +68,7 @@ func (r *Registry) GetServiceName(serviceId string) string {
 			}
 		}
 	}
-	log.Printf("Got service name for %s: %s\n", serviceId, r.idToName[serviceId])
+
 	return r.idToName[serviceId]
 }
 
