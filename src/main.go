@@ -45,7 +45,7 @@ func main() {
 			now := time.Now()
 			serviceDto := make([]home.ServiceData, 0)
 			states := registry.States()
-			sort.Slice(states, func(lhs, rhs int) bool {
+			sort.SliceStable(states, func(lhs, rhs int) bool {
 				if states[lhs].WasCheckinMissed(&now) != states[rhs].WasCheckinMissed(&now) {
 					return states[lhs].WasCheckinMissed(&now)
 				}
@@ -53,8 +53,12 @@ func main() {
 			})
 
 			for _, state := range states {
-				childServices := make([]home.ServiceData, 0)
-				if state.Relationship == service.Parent {
+				switch state.Relationship {
+				case service.Child:
+					continue
+				case service.Parent:
+					childServices := make([]home.ServiceData, 0)
+					offlineChildCount := 0
 					for _, childState := range states {
 						if childState.Relationship == service.Child && childState.ParentKey == state.ParentKey {
 							childServices = append(childServices, home.ServiceData{
@@ -64,28 +68,35 @@ func main() {
 							})
 						}
 					}
-				}
-				offlineChildCount := 0
-				for _, childState := range childServices {
-					if childState.MissedCheckIn {
-						offlineChildCount += 1
+					for _, childState := range childServices {
+						if childState.MissedCheckIn {
+							offlineChildCount += 1
+						}
 					}
-				}
-				if state.Relationship != service.Child {
 					serviceDto = append(serviceDto, home.ServiceData{
 						ServiceName:      state.Name,
 						MissedCheckIn:    state.WasCheckinMissed(&now),
 						LastHeartbeat:    state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
-						OnlineChildCount: len(childServices) - offlineChildCount,
 						ChildServices:    childServices,
+						OnlineChildCount: len(childServices) - offlineChildCount,
 					})
-
+				case service.Standalone:
+					serviceDto = append(serviceDto, home.ServiceData{
+						ServiceName:      state.Name,
+						MissedCheckIn:    state.WasCheckinMissed(&now),
+						LastHeartbeat:    state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
+						ChildServices:    make([]home.ServiceData, 0),
+						OnlineChildCount: 0,
+					})
+				default:
+					log.Println("Unknown relationship: ", state.Relationship)
 				}
 			}
 
 			return serviceDto
 		},
 	}
+
 	http.HandleFunc("/", home.ServeHTTP)
 
 	http.HandleFunc("/reset", func(w http.ResponseWriter, _ *http.Request) {
@@ -96,14 +107,11 @@ func main() {
 	http.HandleFunc("/alive", func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
-			log.Printf("Error parsing form: %v", err)
+			log.Println("Error parsing form: ", err)
+			return
 		}
-		serviceId := r.FormValue("service-id")
-		serviceName := r.FormValue("service-name")
-		relationship := r.FormValue("relationship")
-		parentKey := r.FormValue("parent-key")
-		log.Printf("Received /alive request: '%s', '%s', '%s', '%s'", serviceId, serviceName, relationship, parentKey)
 
+		serviceId := r.FormValue("service-id")
 		if s, ok := registry.TryGet(serviceId); ok {
 			// TODO: Try to remove this line by fixing the dirty read issue.
 			s.Name = registry.GetServiceName(serviceId)
@@ -111,16 +119,16 @@ func main() {
 			s.LastHeartbeat = time.Now()
 			registry.Set(s)
 		} else {
-			var name string
-			if serviceName != "" {
-				name = serviceName
-			} else {
-				name = registry.GetServiceName(serviceId)
+			serviceName := r.FormValue("service-name")
+			if serviceName == "" {
+				serviceName = registry.GetServiceName(serviceId)
 			}
+			relationship := r.FormValue("relationship")
+			parentKey := r.FormValue("parent-key")
 
 			registry.Set(service.State{
 				Id:            serviceId,
-				Name:          name,
+				Name:          serviceName,
 				LastHeartbeat: time.Now(),
 				HasAlerted:    false,
 				Relationship:  service.ToRelationship(relationship),
