@@ -12,7 +12,7 @@ type State struct {
 }
 
 func (s State) WasCheckinMissed(currentTime *time.Time) bool {
-	return s.LastHeartbeat.Add(1 * time.Minute).Before(*currentTime)
+	return s.LastHeartbeat.Add(30 * time.Second).Before(*currentTime)
 }
 
 // This is how we do enums in golang

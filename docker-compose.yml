@@ -54,3 +54,17 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     entrypoint: sleep infinity
+
+  independant-named-service:
+    image: byrnedo/alpine-curl:latest
+    healthcheck:
+      test: curl -X POST -d service-id='independant-named-service' -d service-name='Named Service With Spaces' $$SERVICE_MONITOR_URL
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+    environment:
+      SERVICE_MONITOR_URL: host.docker.internal:1911/alive
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: sleep infinity
+

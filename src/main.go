@@ -83,12 +83,12 @@ func main() {
 						StatusColor:      home.ToStatusColor(state.WasCheckinMissed(&now), healhtyChildren),
 						LastHeartbeat:    state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
 						ChildServices:    childServices,
-						OnlineChildCount: len(childServices) - offlineChildren,
+						OnlineChildCount: onlineChildren,
 					})
 				case service.Standalone:
 					serviceDto = append(serviceDto, home.ServiceData{
 						ServiceName:      state.Name,
-						StatusColor:   home.ToStatusColor(state.WasCheckinMissed(&now), true),
+						StatusColor:      home.ToStatusColor(state.WasCheckinMissed(&now), true),
 						LastHeartbeat:    state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
 						ChildServices:    make([]home.ServiceData, 0),
 						OnlineChildCount: 0,
@@ -127,6 +127,8 @@ func main() {
 			serviceName := r.FormValue("service-name")
 			if serviceName == "" {
 				serviceName = registry.GetServiceName(serviceId)
+			} else {
+				registry.SetServiceName(serviceId, serviceName)
 			}
 			relationship := r.FormValue("relationship")
 			parentKey := r.FormValue("parent-key")

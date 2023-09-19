@@ -33,6 +33,12 @@ func (r *Registry) Reset() {
 	r.parentToChildren = make(map[string][]string)
 }
 
+ func(r *Registry) SetServiceName(serviceId string, serviceName string) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	r.idToName[serviceId] = serviceName
+}
+
 func (r *Registry) GetServiceName(serviceId string) string {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
