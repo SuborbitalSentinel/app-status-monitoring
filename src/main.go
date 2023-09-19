@@ -58,32 +58,37 @@ func main() {
 					continue
 				case service.Parent:
 					childServices := make([]home.ServiceData, 0)
-					offlineChildCount := 0
 					for _, childState := range states {
 						if childState.Relationship == service.Child && childState.ParentKey == state.ParentKey {
 							childServices = append(childServices, home.ServiceData{
 								ServiceName:   childState.Name,
-								MissedCheckIn: childState.WasCheckinMissed(&now),
+								StatusColor:   home.ToStatusColor(childState.WasCheckinMissed(&now), true),
 								LastHeartbeat: childState.LastHeartbeat.Format("Jan 2 15:04:05"),
 							})
 						}
 					}
+					offlineChildren := 0
 					for _, childState := range childServices {
-						if childState.MissedCheckIn {
-							offlineChildCount += 1
+						if childState.StatusColor == home.Unhealthy {
+							offlineChildren += 1
 						}
 					}
+
+					totalChildren := len(childServices)
+					onlineChildren := totalChildren - offlineChildren
+					healhtyChildren := totalChildren == onlineChildren
+
 					serviceDto = append(serviceDto, home.ServiceData{
 						ServiceName:      state.Name,
-						MissedCheckIn:    state.WasCheckinMissed(&now),
+						StatusColor:      home.ToStatusColor(state.WasCheckinMissed(&now), healhtyChildren),
 						LastHeartbeat:    state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
 						ChildServices:    childServices,
-						OnlineChildCount: len(childServices) - offlineChildCount,
+						OnlineChildCount: len(childServices) - offlineChildren,
 					})
 				case service.Standalone:
 					serviceDto = append(serviceDto, home.ServiceData{
 						ServiceName:      state.Name,
-						MissedCheckIn:    state.WasCheckinMissed(&now),
+						StatusColor:   home.ToStatusColor(state.WasCheckinMissed(&now), true),
 						LastHeartbeat:    state.LastHeartbeat.Format("Mon Jan 2 15:04:05 MST 2006"),
 						ChildServices:    make([]home.ServiceData, 0),
 						OnlineChildCount: 0,

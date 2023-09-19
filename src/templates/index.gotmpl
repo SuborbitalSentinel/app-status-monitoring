@@ -5,11 +5,11 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Preahvihear&display=swap" rel="stylesheet">
 		<style>
-			body { align-items: center;  display: flex; flex-flow: column nowrap; }
+			body { align-items: center;  display: flex; flex-flow: column nowrap; font-family: Preahvihear, sans-serif; }
 			ul { padding: 0px; list-style: none; }
 			hr { width:95%; background-color: #000000; height: 2px; border: none; }
 			details { margin-bottom: 10px; }
-			ul { width: 90%; }
+			ul { width: 70%; }
 			ul>li {
 				text-align: center;
 				padding: 0px 0px 20px 0px;
@@ -22,34 +22,23 @@
 			}
 
 			.tab-indicator {
-				border-right: 1px solid;
+				border-right: 2px solid;
 			}
 
 			.child-grid-container {
 				display: grid;
 				grid-gap: 10px;
-				grid-template-columns: auto auto auto auto;
-				background-color: #333333;
+				grid-template-columns: auto auto auto;
 				margin: 0% 3%;
-				padding: 5px;
+				padding: 7px;
 				border-radius: 5px;
 			}
 
 			.nested-tab-container {
 				display: grid;
 				grid-template-columns: 10% 90%;
-				background-color: #DDDDDD;
-			}
-
-			.parent-placard {
-				box-shadow: 1px 1px 5px #111111 inset;
-				background-color: #999999;
-				margin: 20px 20px 10px 20px;
-				padding: 8px 16px;
-				display: inline-block;
-				font-family: 'Preahvihear', sans-serif;
-				font-weight: bold;
-				font-size: 1.25rem;
+				border: 2px solid;
+				background-color: #EEEEEF;
 			}
 		</style>
 	</head>
@@ -58,23 +47,23 @@
 			{{range $_, $parent := .Services}}
 			<li>
 				<div class="tab-container">
-					<div class="tab-indicator" {{if $parent.MissedCheckIn}} style="background-color: #FF9999" {{else}} style="background-color: #99FF99" {{end}}></div>
+					<div class="tab-indicator" style="background-color: {{$parent.StatusColor}}"></div>
 					<div>
 						<div style="align-items: center;  display: flex; flex-flow: column nowrap;">
-							<div class="parent-placard">{{$parent.ServiceName}}</div>
+							<div style="font-size: 1.25rem; font-weight: bold">{{$parent.ServiceName}}</div>
 							{{$parent.LastHeartbeat}}
 						</div>
-						<hr>
 						{{if ne 0 (len $parent.ChildServices)}}
+							<hr>
 							<details>
-							<summary>Show Children (Online: {{$parent.OnlineChildCount}}/{{(len $parent.ChildServices)}})</summary>
+							<summary>Show (Online: {{$parent.OnlineChildCount}}/{{(len $parent.ChildServices)}})</summary>
 								<div class="child-grid-container">
 									{{range $_, $child := $parent.ChildServices}}
 										<div class="nested-tab-container">
-											<div class="tab-indicator" {{if $child.MissedCheckIn}} style="background-color: #FF9999" {{else}} style="background-color: #99FF99" {{end}}></div>
+											<div class="tab-indicator" style="background-color: {{$child.StatusColor}}"></div>
 											<div style="align-items: center;  display: flex; flex-flow: column nowrap;">
-												<p style="margin: 0px; font-size:0.75rem">{{$child.ServiceName}}</p>
-												<p style="font-size:0.75rem">{{$child.LastHeartbeat}}</p>
+												<p style="margin: 0px; font-size: 0.83rem; font-weight: bold;">{{$child.ServiceName}}</p>
+												<p style="margin: 0px; font-size: 0.8rem">{{$child.LastHeartbeat}}</p>
 											</div>
 										</div>
 									{{end}}

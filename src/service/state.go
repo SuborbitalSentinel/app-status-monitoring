@@ -17,6 +17,7 @@ func (s State) WasCheckinMissed(currentTime *time.Time) bool {
 
 // This is how we do enums in golang
 type Relationship int
+
 const (
 	Parent Relationship = iota
 	Child
